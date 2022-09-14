@@ -11,6 +11,7 @@ def read_file(path):
 
 
 def tokens_process(tokens):
+    print(tokens)
     new_tokens = []
     for token in tokens:
         if token != ',' and token != '.' and token != '!':
@@ -23,6 +24,7 @@ def count_unigram(data):
     unigram_dic = {}
     tokens = word_tokenize(data)
     new_tokens = tokens_process(tokens)
+    len_tokens = len(new_tokens)
 
     for token in new_tokens:
         if token not in unigram_dic:
@@ -30,15 +32,14 @@ def count_unigram(data):
         else:
             unigram_dic[token] += 1
 
-    return unigram_dic
+    return unigram_dic, len_tokens
 
 
 def prob_unigram(data):
-    unigram_dic = count_unigram(data)
+    unigram_dic, len_tokens = count_unigram(data)
     prob_unigram_dic = {}
-    dic_len = len(unigram_dic)
     for unigram in unigram_dic:
-        prob_unigram_dic[unigram] = unigram_dic[unigram] / dic_len
+        prob_unigram_dic[unigram] = unigram_dic[unigram] / len_tokens
 
     return prob_unigram_dic
 
@@ -58,7 +59,7 @@ def count_bigram(data):
 
 
 def prob_bigram(data):
-    unigram_dic = count_unigram(data)
+    unigram_dic, len_tokens = count_unigram(data)
     bigram_dic = count_bigram(data)
     prob_bigram_dic = {}
     for bigram in bigram_dic:
@@ -67,15 +68,23 @@ def prob_bigram(data):
     return prob_bigram_dic
 
 
-if __name__ == "__main__":
-    path = "A1_DATASET//train//truthful.txt"
-    truthful = read_file(path)
-    prob_unigram = prob_unigram(truthful)
-    prob_bigram = prob_bigram(truthful)
+# if __name__ == "__main__":
+#     path = "A1_DATASET//train//truthful.txt"
+#     truthful = read_file(path)
+#     prob_unigram = prob_unigram(truthful)
+#     prob_bigram = prob_bigram(truthful)
+#
+#     print("truthful unigram:")
+#     print(max(prob_unigram, key=prob_unigram.get), prob_unigram[max(prob_unigram, key=prob_unigram.get)])
+#     print("truthful bigram:")
+#     print(max(prob_bigram, key=prob_bigram.get), prob_bigram[max(prob_bigram, key=prob_bigram.get)])
 
-    print("truthful unigram:")
-    print(max(prob_unigram, key=prob_unigram.get), prob_unigram[max(prob_unigram, key=prob_unigram.get)])
-    print("truthful bigram:")
-    print(max(prob_bigram, key=prob_bigram.get), prob_bigram[max(prob_bigram, key=prob_bigram.get)])
+    # test = "the students like the assignment"
+    # prob_unigram = prob_unigram(test)
+    # print(max(prob_unigram, key=prob_unigram.get), prob_unigram[max(prob_unigram, key=prob_unigram.get)])
+    # prob_bigram = prob_bigram(test)
+    # print(prob_bigram)
+    # print(max(prob_bigram, key=prob_bigram.get), prob_bigram[max(prob_bigram, key=prob_bigram.get)])
+
 
 

@@ -1,3 +1,4 @@
+import math
 from nltk import word_tokenize
 from nltk.util import ngrams
 
@@ -40,7 +41,7 @@ def get_ngrams(raw_data, n):
 # Probability(unigram) = count(unigram) / len(unigrams)
 def calc_unigram_probs(unigrams_dict):
     probabilities = {}
-    vocab_len = len(unigrams_dict)
+    vocab_len = sum(unigrams_dict.values())
     for unigram in unigrams_dict:
         probabilities[unigram] = unigrams_dict[unigram] / vocab_len
     return probabilities
@@ -54,38 +55,40 @@ def calc_bigram_probs(unigrams_dict, bigrams_dict):
     return probabilities
 
 
+# gets keys not in vocabulary and total count of occurrences
+def get_unknown(vocab_dict, observed_dict):
+    unknown = observed_dict.keys() - vocab_dict.keys()
+    unk_count = sum([observed_dict[key] for key in unknown])
+    return unknown, unk_count
+
+
+# returns list data split into train & validate lists
+def data_split(raw_data, train_portion):
+    i_split = math.floor(len(raw_data) * train_portion)
+    return raw_data[:i_split], raw_data[i_split:]
+
+
 if __name__ == "__main__":
     # PROCESSING
     truth_data = read_from_file('A1_DATASET\\train\\truthful.txt')
-    t_unigrams_dict = get_unigrams(truth_data)
-    t_bigrams_dict = get_ngrams(truth_data, 2)
+    train_t_data, val_t_data = data_split(truth_data, 0.8)
+
+    deceptive_data = read_from_file('A1_DATASET\\train\\deceptive.txt')
+    train_d_data, val_d_data = data_split(deceptive_data, 0.8)
+
+    # truthful modeling
+    t_unigrams_dict = get_unigrams(train_t_data)
+    t_bigrams_dict = get_ngrams(train_t_data, 2)
     tu_probs = calc_unigram_probs(t_unigrams_dict)
     tb_probs = calc_bigram_probs(t_unigrams_dict, t_bigrams_dict)
 
-    print('\nMost Probable Truthful Unigram and Bigram')
-    print(f'total unigrams: {len(t_unigrams_dict)}')
-    max_tu_key = max(t_unigrams_dict, key=t_unigrams_dict.get)
-    print(f'unigram max: {max_tu_key}\tcount: {t_unigrams_dict[max_tu_key]}\tprob: {tu_probs[max_tu_key]}\n')
-
-    print(f'total bigrams: {len(t_bigrams_dict)}')
-    max_tb_key = max(t_bigrams_dict, key=t_bigrams_dict.get)
-    print(f'bigram max: {max_tb_key}\tcount: {t_bigrams_dict[max_tb_key]}\tprob: {tb_probs[max_tb_key]}\n')
-
-    deceptive_data = read_from_file('A1_DATASET\\train\\deceptive.txt')
-    d_unigrams_dict = get_unigrams(deceptive_data)
-    d_bigrams_dict = get_ngrams(deceptive_data, 2)
+    # deceptive modeling
+    d_unigrams_dict = get_unigrams(train_d_data)
+    d_bigrams_dict = get_ngrams(train_d_data, 2)
     du_probs = calc_unigram_probs(d_unigrams_dict)
     db_probs = calc_bigram_probs(d_unigrams_dict, d_bigrams_dict)
 
-    print('\nMost Probable Deceptive Unigram and Bigram')
-    print(f'total unigrams: {len(d_unigrams_dict)}')
-    max_du_key = max(d_unigrams_dict, key=d_unigrams_dict.get)
-    print(f'unigram max: {max_du_key}\tcount: {d_unigrams_dict[max_du_key]}\tprob: {du_probs[max_du_key]}\n')
-
-    print(f'total bigrams: {len(d_bigrams_dict)}')
-    max_db_key = max(d_bigrams_dict, key=d_bigrams_dict.get)
-    print(f'bigram max: {max_db_key}\tcount: {d_bigrams_dict[max_db_key]}\tprob: {db_probs[max_db_key]}\n')
-    
+     
     # SMOOTHING
     # PERPLEXITY
     # PREDICTIONS

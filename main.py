@@ -1,5 +1,6 @@
 import ngrams_model
 import smoothing
+import perplexity
 
 if __name__ == "__main__":
     path = "A1_DATASET//train//truthful.txt"
@@ -12,7 +13,30 @@ if __name__ == "__main__":
     print("truthful bigram:")
     print(max(prob_bigram, key=prob_bigram.get), prob_bigram[max(prob_bigram, key=prob_bigram.get)])
 
-    prob_laplace_k_smooth_unigram = smoothing.prob_laplace_k_smooth_unigram(truthful, 1)
+    prob_laplace_smooth_unigram = smoothing.prob_laplace_smooth_unigram(truthful)
     print("truthful laplace unigram:")
-    print(max(prob_laplace_k_smooth_unigram, key=prob_laplace_k_smooth_unigram.get),
-          prob_laplace_k_smooth_unigram[max(prob_laplace_k_smooth_unigram, key=prob_laplace_k_smooth_unigram.get)])
+    print(max(prob_laplace_smooth_unigram, key=prob_laplace_smooth_unigram.get),
+          prob_laplace_smooth_unigram[max(prob_laplace_smooth_unigram, key=prob_laplace_smooth_unigram.get)])
+
+    prob_laplace_smooth_bigram = smoothing.prob_laplace_smooth_bigram(truthful)
+    print("truthful laplace bigram:")
+    print(max(prob_laplace_smooth_bigram, key=prob_laplace_smooth_bigram.get),
+          prob_laplace_smooth_bigram[max(prob_laplace_smooth_bigram, key=prob_laplace_smooth_bigram.get)])
+
+    prob_add_k_smooth_unigram = smoothing.prob_add_k_smooth_unigram(truthful, 2)
+    print("truthful add-k unigram:")
+    print(max(prob_add_k_smooth_unigram, key=prob_add_k_smooth_unigram.get),
+          prob_add_k_smooth_unigram[max(prob_add_k_smooth_unigram, key=prob_add_k_smooth_unigram.get)])
+
+    prob_add_k_smooth_bigram = smoothing.prob_add_k_smooth_bigram(truthful, 2)
+    print("truthful add-k bigram:")
+    print(max(prob_add_k_smooth_bigram, key=prob_add_k_smooth_bigram.get),
+          prob_add_k_smooth_bigram[max(prob_add_k_smooth_bigram, key=prob_add_k_smooth_bigram.get)])
+
+    print("truthful unigram perplexity")
+    print(perplexity.cal_perplexity(prob_unigram))
+
+    print("truthful bigram perplexity")
+    print(perplexity.cal_perplexity(prob_bigram))
+
+

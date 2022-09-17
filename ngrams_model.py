@@ -11,7 +11,6 @@ def read_file(path):
 
 
 def tokens_process(tokens):
-    print(tokens)
     new_tokens = []
     for token in tokens:
         if token != ',' and token != '.' and token != '!':

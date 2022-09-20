@@ -62,12 +62,22 @@ def calc_bigram_probs(unigrams_dict, bigrams_dict):
 
 
 # TEMP SMOOTHING FUNCTION
-def smooth_prob(vocab_dict, prob_dict):
-    V = len(vocab_dict)
+def smoothed_unigram_probabilities(unigrams_dict):
+    V = len(unigrams_dict)
     k = 1
-    smoothed = {key: value * (k / V) for key, value in prob_dict.items()}
+    smoothed = {}
+    vocab_len = sum(unigrams_dict.values())
+    for unigram in unigrams_dict:
+        smoothed[unigram] = (unigrams_dict[unigram] + k) / (vocab_len + (k * V))
     return smoothed
 
+def smoothed_bigram_probabilities(unigrams_dict, bigrams_dict):
+    V = len(unigrams_dict)
+    k = 1
+    smoothed = {}
+    for bigram in bigrams_dict:
+        smoothed[bigram] = (bigrams_dict[bigram] + k) / (unigrams_dict[bigram[0]] + (k * V))
+    return smoothed
 
 # gets keys not in vocabulary and total count of occurrences
 def get_unknown(vocab_dict, observed_dict):
@@ -111,10 +121,10 @@ if __name__ == "__main__":
     db_probs = calc_bigram_probs(d_unigrams_dict, d_bigrams_dict)
 
     # SMOOTHING
-    smoothed_tu = smooth_prob(t_unigrams_dict, tu_probs)
-    smoothed_tb = smooth_prob(t_bigrams_dict, tb_probs)
-    smoothed_du = smooth_prob(d_unigrams_dict, du_probs)
-    smoothed_db = smooth_prob(d_bigrams_dict, db_probs)
+    smoothed_tu = smoothed_unigram_probabilities(t_unigrams_dict)
+    smoothed_tb = smoothed_bigram_probabilities(t_unigrams_dict, t_bigrams_dict)
+    smoothed_du = smoothed_unigram_probabilities(d_unigrams_dict)
+    smoothed_db = smoothed_bigram_probabilities(d_unigrams_dict, d_bigrams_dict)
 
     # VALIDATION
     val_tr_data = read_from_file('A1_DATASET\\validation\\truthful.txt')
@@ -140,10 +150,11 @@ if __name__ == "__main__":
     val_tr_perplexity = get_perplexity(val_tr_data, val_tu_probs, unk_tr_uni_prob)
     val_de_perplexity = get_perplexity(val_de_data, val_du_probs, unk_de_uni_prob)
 
+    print('UNSMOOTHED PERPLEXITY')
+    print(f'\nAverage Validation Truth UNK Probability:\nUnigram={unk_tr_uni_prob}\nBigram={unk_tr_bi_prob}')
     print(f'\nAverage Validation Truth Perplexity: {sum(val_tr_perplexity) / len(val_tr_perplexity)}')
-    print(val_tr_perplexity)
 
+    print(f'\nAverage Validation Deceptive UNK Probability:\nUnigram={unk_de_uni_prob}\nBigram={unk_de_bi_prob}')
     print(f'\nAverage Validation Deceptive Perplexity: {sum(val_de_perplexity) / len(val_de_perplexity)}')
-    print(val_de_perplexity)
 
     # PREDICTIONS

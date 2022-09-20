@@ -10,6 +10,12 @@ def read_from_file(filepath):
     return raw_data
 
 
+# returns list data split into train & validate lists
+def data_split(raw_data, train_portion):
+    i_split = math.floor(len(raw_data) * train_portion)
+    return raw_data[:i_split], raw_data[i_split:]
+
+
 # processes raw data and return unigrams dictionary
 # dict -> key = unigram, value = occurrence count
 def get_unigrams(raw_data):
@@ -55,40 +61,89 @@ def calc_bigram_probs(unigrams_dict, bigrams_dict):
     return probabilities
 
 
+# TEMP SMOOTHING FUNCTION
+def smooth_prob(vocab_dict, prob_dict):
+    V = len(vocab_dict)
+    k = 1
+    smoothed = {key: value * (k / V) for key, value in prob_dict.items()}
+    return smoothed
+
+
 # gets keys not in vocabulary and total count of occurrences
 def get_unknown(vocab_dict, observed_dict):
-    unknown = observed_dict.keys() - vocab_dict.keys()
-    unk_count = sum([observed_dict[key] for key in unknown])
-    return unknown, unk_count
+    unknowns = observed_dict.keys() - vocab_dict.keys()
+    unk_dict = {unk:observed_dict[unk] for unk in unknowns}
+    unk_prob = sum(unk_dict.values()) / sum(observed_dict.values())
+    return unk_dict, unk_prob
 
 
-# returns list data split into train & validate lists
-def data_split(raw_data, train_portion):
-    i_split = math.floor(len(raw_data) * train_portion)
-    return raw_data[:i_split], raw_data[i_split:]
+# TEMP PERPLEXITY FUNCTION
+def get_perplexity(raw_data, unigram_probs, unknown_prob):
+    perplexities = []
+    for data in raw_data:
+        summation = 0
+        words = data.split()
+        for word in words:
+            if word in unigram_probs:
+                summation += math.log2(unigram_probs[word])
+            else:
+                summation += math.log2(unknown_prob)
+        l_value = summation / len(words)
+        perplexities.append(math.pow(2, (-1) * l_value))
+    return perplexities
 
 
 if __name__ == "__main__":
-    # PROCESSING
+    # TRAINING
     truth_data = read_from_file('A1_DATASET\\train\\truthful.txt')
-    train_t_data, val_t_data = data_split(truth_data, 0.8)
-
     deceptive_data = read_from_file('A1_DATASET\\train\\deceptive.txt')
-    train_d_data, val_d_data = data_split(deceptive_data, 0.8)
 
     # truthful modeling
-    t_unigrams_dict = get_unigrams(train_t_data)
-    t_bigrams_dict = get_ngrams(train_t_data, 2)
+    t_unigrams_dict = get_unigrams(truth_data)
+    t_bigrams_dict = get_ngrams(truth_data, 2)
     tu_probs = calc_unigram_probs(t_unigrams_dict)
     tb_probs = calc_bigram_probs(t_unigrams_dict, t_bigrams_dict)
 
     # deceptive modeling
-    d_unigrams_dict = get_unigrams(train_d_data)
-    d_bigrams_dict = get_ngrams(train_d_data, 2)
+    d_unigrams_dict = get_unigrams(deceptive_data)
+    d_bigrams_dict = get_ngrams(deceptive_data, 2)
     du_probs = calc_unigram_probs(d_unigrams_dict)
     db_probs = calc_bigram_probs(d_unigrams_dict, d_bigrams_dict)
 
-     
     # SMOOTHING
+    smoothed_tu = smooth_prob(t_unigrams_dict, tu_probs)
+    smoothed_tb = smooth_prob(t_bigrams_dict, tb_probs)
+    smoothed_du = smooth_prob(d_unigrams_dict, du_probs)
+    smoothed_db = smooth_prob(d_bigrams_dict, db_probs)
+
+    # VALIDATION
+    val_tr_data = read_from_file('A1_DATASET\\validation\\truthful.txt')
+    val_tr_unigrams = get_unigrams(val_tr_data)
+    val_tr_bigrams = get_ngrams(val_tr_data, 2)
+    val_tu_probs = calc_unigram_probs(val_tr_unigrams)
+    val_tb_probs = calc_bigram_probs(val_tr_unigrams, val_tr_bigrams)
+
+    val_de_data = read_from_file('A1_DATASET\\validation\\deceptive.txt')
+    val_de_unigrams = get_unigrams(val_de_data)
+    val_de_bigrams = get_ngrams(val_de_data, 2)
+    val_du_probs = calc_unigram_probs(val_de_unigrams)
+    val_db_probs = calc_bigram_probs(val_de_unigrams, val_de_bigrams)
+
+    # UNKNOWN HANDLING
+    unk_tr_uni_dict, unk_tr_uni_prob = get_unknown(t_unigrams_dict, val_tr_unigrams)
+    unk_tr_bi_dict, unk_tr_bi_prob = get_unknown(t_bigrams_dict, val_tr_bigrams)
+
+    unk_de_uni_dict, unk_de_uni_prob = get_unknown(d_unigrams_dict, val_de_unigrams)
+    unk_de_bi_dict, unk_de_bi_prob = get_unknown(d_bigrams_dict, val_de_bigrams)
+
     # PERPLEXITY
+    val_tr_perplexity = get_perplexity(val_tr_data, val_tu_probs, unk_tr_uni_prob)
+    val_de_perplexity = get_perplexity(val_de_data, val_du_probs, unk_de_uni_prob)
+
+    print(f'\nAverage Validation Truth Perplexity: {sum(val_tr_perplexity) / len(val_tr_perplexity)}')
+    print(val_tr_perplexity)
+
+    print(f'\nAverage Validation Deceptive Perplexity: {sum(val_de_perplexity) / len(val_de_perplexity)}')
+    print(val_de_perplexity)
+
     # PREDICTIONS

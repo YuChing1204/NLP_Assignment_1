@@ -1,5 +1,4 @@
 import math
-from nltk import word_tokenize
 from nltk.util import ngrams
 
 
@@ -19,10 +18,11 @@ def get_unigrams(raw_data):
         tokens.insert(0, '<s>')
         tokens.append('</s>')
         for token in set(tokens):
-            if token in unigrams_dict:
-                unigrams_dict[token] += tokens.count(token)
+            temp = token.lower()
+            if temp in unigrams_dict:
+                unigrams_dict[temp] += tokens.count(temp)
             else:
-                unigrams_dict[token] = tokens.count(token)
+                unigrams_dict[temp] = tokens.count(temp)
     return unigrams_dict
 
 
@@ -36,10 +36,11 @@ def get_ngrams(raw_data, n):
                                                    pad_right=True,
                                                    right_pad_symbol='</s>'))
         for n_gram in ngrams_list:
-            if n_gram in ngrams_dict:
-                ngrams_dict[n_gram] += ngrams_list.count(n_gram)
+            temp = (n_gram[0].lower(), n_gram[1].lower())
+            if temp in ngrams_dict:
+                ngrams_dict[temp] += ngrams_list.count(temp)
             else:
-                ngrams_dict[n_gram] = ngrams_list.count(n_gram)
+                ngrams_dict[temp] = ngrams_list.count(temp)
     return ngrams_dict
 
 

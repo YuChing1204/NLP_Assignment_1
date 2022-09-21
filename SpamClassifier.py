@@ -120,24 +120,52 @@ if __name__ == "__main__":
 
     val_tr_uni_perps = {}
     val_tr_bi_perps = {}
+    val_tr_uni_predictions = []
+    val_tr_bi_predictions = []
     for i, line in enumerate(val_tr_data):
         val_tr_uni_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tu, 1),
                                'DECEP': get_ngram_perplexity(line, smoothed_du, 1)}
         val_tr_bi_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tb, 2),
                                'DECEP': get_ngram_perplexity(line, smoothed_db, 2)}
-    
-    print('VALIDATION TRUTHFUL')
-    print(f'Unigrams:\n{val_tr_uni_perps}')
-    print(f'\nBigrams:\n{val_tr_bi_perps}')
+        if val_tr_uni_perps[i]['TRUTH'] < val_tr_uni_perps[i]['DECEP']:
+            val_tr_uni_predictions.append('truthful')
+        else:
+            val_tr_uni_predictions.append('deceptive')
+        if val_tr_bi_perps[i]['TRUTH'] < val_tr_bi_perps[i]['DECEP']:
+            val_tr_bi_predictions.append('truthful')
+        else:
+            val_tr_bi_predictions.append('deceptive')
+  
+    print(f'\nVALIDATION TRUTHFUL PREDICTIONS ({len(val_tr_uni_predictions)})')
+    tu_tr_count = val_tr_uni_predictions.count('truthful')
+    tu_de_count = val_tr_uni_predictions.count('deceptive')
+    print(f'Unigrams:\ttruthful = {tu_tr_count}\tdeceptive = {tu_de_count}')
+    tb_tr_count = val_tr_bi_predictions.count('truthful')
+    tb_de_count = val_tr_bi_predictions.count('deceptive')
+    print(f'Bigrams:\ttruthful = {tb_tr_count}\tdeceptive = {tb_de_count}')
 
     val_de_uni_perps = {}
     val_de_bi_perps = {}
+    val_de_uni_predictions = []
+    val_de_bi_predictions = []
     for i, line in enumerate(val_de_data):
         val_de_uni_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tu, 1),
                                'DECEP': get_ngram_perplexity(line, smoothed_du, 1)}
         val_de_bi_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tb, 2),
                                'DECEP': get_ngram_perplexity(line, smoothed_db, 2)}
+        if val_de_uni_perps[i]['TRUTH'] < val_de_uni_perps[i]['DECEP']:
+            val_de_uni_predictions.append('truthful')
+        else:
+            val_de_uni_predictions.append('deceptive')
+        if val_de_bi_perps[i]['TRUTH'] < val_de_bi_perps[i]['DECEP']:
+            val_de_bi_predictions.append('truthful')
+        else:
+            val_de_bi_predictions.append('deceptive')
 
-    print('VALIDATION DECEPTIVE')
-    print(f'Unigrams:\n{val_de_uni_perps}')
-    print(f'\nBigrams:\n{val_de_bi_perps}')
+    print(f'\nVALIDATION DECEPTIVE PREDICTIONS ({len(val_de_uni_predictions)})')
+    du_tr_count = val_de_uni_predictions.count('truthful')
+    du_de_count = val_de_uni_predictions.count('deceptive')
+    print(f'Unigrams:\ttruthful = {du_tr_count}\tdeceptive = {du_de_count}')
+    db_tr_count = val_de_bi_predictions.count('truthful')
+    db_de_count = val_de_bi_predictions.count('deceptive')
+    print(f'Bigrams:\ttruthful = {db_tr_count}\tdeceptive = {db_de_count}')

@@ -16,10 +16,10 @@ def get_unigrams(raw_data):
     unigrams_dict = {}
     for text in raw_data:
         tokens = text.split()
-        tokens.insert(0, '<s>')
-        tokens.append('</s>')
+        # tokens.insert(0, '<s>')
+        # tokens.append('</s>')
         for token in set(tokens):
-            temp = token.lower()
+            temp = token # .lower()
             if temp in unigrams_dict:
                 unigrams_dict[temp] += tokens.count(temp)
             else:
@@ -32,16 +32,16 @@ def get_unigrams(raw_data):
 def get_ngrams(raw_data, n):
     ngrams_dict = {}
     for text in raw_data:
-        ngrams_list = list(ngrams(text.split(), n, pad_left=True,
-                                                   left_pad_symbol='<s>',
-                                                   pad_right=True,
-                                                   right_pad_symbol='</s>'))
+        ngrams_list = list(ngrams(text.split(), n)) # , pad_left=True,
+                                                   # left_pad_symbol='<s>',
+                                                   # pad_right=True,
+                                                   # right_pad_symbol='</s>'))
         for n_gram in ngrams_list:
-            temp = (n_gram[0].lower(), n_gram[1].lower())
-            if temp in ngrams_dict:
-                ngrams_dict[temp] += ngrams_list.count(temp)
+            # temp = (n_gram[0].lower(), n_gram[1].lower())
+            if n_gram in ngrams_dict:
+                ngrams_dict[n_gram] += ngrams_list.count(n_gram)
             else:
-                ngrams_dict[temp] = ngrams_list.count(temp)
+                ngrams_dict[n_gram] = ngrams_list.count(n_gram)
     return ngrams_dict
 
 
@@ -56,7 +56,7 @@ def get_unknown_ngrams(ngram_dict, n, limit):
 # SMOOTHING FUNCTIONS *****************************************************
 def smoothed_unigram_probabilities(unigrams_dict):
     N = sum(unigrams_dict.values())
-    k = 1
+    k = 2
     V = len(unigrams_dict)
     smoothed = {}
     for unigram in unigrams_dict:
@@ -65,7 +65,7 @@ def smoothed_unigram_probabilities(unigrams_dict):
 
 
 def smoothed_bigram_probabilities(unigrams_dict, bigrams_dict):
-    k = 1
+    k = 2
     V = len(unigrams_dict)
     smoothed = {}
     for bigram in bigrams_dict:
@@ -76,7 +76,11 @@ def smoothed_bigram_probabilities(unigrams_dict, bigrams_dict):
 # PERPLEXITY ******************************************************
 def get_ngram_perplexity(record, trained_probabilities, n):
     summation = 0
-    words = record.lower().split()
+    words = record.split() # .lower().split()
+    # words.insert(0, '<s>')
+    # words.append('</s>')
+    # stops = set(stopwords.words('english'))
+    # updated_words = [word for word in words if word not in stops]
     M = len(words)
     ngram_list = list(ngrams(words, n)) if n > 1 else words
     unk_key = '<UNK>' if n == 1 else ('<UNK>', '<UNK>')
@@ -87,6 +91,18 @@ def get_ngram_perplexity(record, trained_probabilities, n):
             summation += math.log2(trained_probabilities[unk_key])
     l = summation / M
     return math.pow(2, (-1) * l)
+
+
+def make_predictions(test_data, truthful_model, deceptive_model, n):
+    predictions = []
+    for line in test_data:
+        truth_score = get_ngram_perplexity(line, truthful_model, n)
+        deceptive_score = get_ngram_perplexity(line, deceptive_model, n)
+        if truth_score < deceptive_score:
+            predictions.append('T')
+        else:
+            predictions.append('D')
+    return predictions
 
 
 if __name__ == "__main__":
@@ -103,10 +119,10 @@ if __name__ == "__main__":
     de_bigrams_dict = get_ngrams(de_train_data, 2)
 
     # UNKNOWN WORD HANDLING
-    updated_tr_unigrams = get_unknown_ngrams(tr_unigrams_dict, 1, 7)
-    updated_tr_bigrams = get_unknown_ngrams(tr_bigrams_dict, 2, 7)
-    updated_de_unigrams = get_unknown_ngrams(de_unigrams_dict, 1, 3)
-    updated_de_bigrams = get_unknown_ngrams(de_bigrams_dict, 2, 3)    
+    updated_tr_unigrams = get_unknown_ngrams(tr_unigrams_dict, 1, 4)
+    updated_tr_bigrams = get_unknown_ngrams(tr_bigrams_dict, 2, 5)
+    updated_de_unigrams = get_unknown_ngrams(de_unigrams_dict, 1, 9)
+    updated_de_bigrams = get_unknown_ngrams(de_bigrams_dict, 2, 5)    
     
     # SMOOTHING
     smoothed_tu = smoothed_unigram_probabilities(updated_tr_unigrams)
@@ -118,54 +134,23 @@ if __name__ == "__main__":
     val_tr_data = read_from_file('A1_DATASET\\validation\\truthful.txt')
     val_de_data = read_from_file('A1_DATASET\\validation\\deceptive.txt')
 
-    val_tr_uni_perps = {}
-    val_tr_bi_perps = {}
-    val_tr_uni_predictions = []
-    val_tr_bi_predictions = []
-    for i, line in enumerate(val_tr_data):
-        val_tr_uni_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tu, 1),
-                               'DECEP': get_ngram_perplexity(line, smoothed_du, 1)}
-        val_tr_bi_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tb, 2),
-                               'DECEP': get_ngram_perplexity(line, smoothed_db, 2)}
-        if val_tr_uni_perps[i]['TRUTH'] < val_tr_uni_perps[i]['DECEP']:
-            val_tr_uni_predictions.append('truthful')
-        else:
-            val_tr_uni_predictions.append('deceptive')
-        if val_tr_bi_perps[i]['TRUTH'] < val_tr_bi_perps[i]['DECEP']:
-            val_tr_bi_predictions.append('truthful')
-        else:
-            val_tr_bi_predictions.append('deceptive')
+    val_tr_uni_preds = make_predictions(val_tr_data, smoothed_tu, smoothed_du, 1)
+    val_de_uni_preds = make_predictions(val_de_data, smoothed_tu, smoothed_du, 1)
+    val_tr_bi_preds = make_predictions(val_tr_data, smoothed_tb, smoothed_db, 2)
+    val_de_bi_preds = make_predictions(val_de_data, smoothed_tb, smoothed_db, 2)
   
-    print(f'\nVALIDATION TRUTHFUL PREDICTIONS ({len(val_tr_uni_predictions)})')
-    tu_tr_count = val_tr_uni_predictions.count('truthful')
-    tu_de_count = val_tr_uni_predictions.count('deceptive')
+    print(f'\nVALIDATION TRUTHFUL PREDICTIONS ({len(val_tr_uni_preds)})')
+    tu_tr_count = val_tr_uni_preds.count('T')
+    tu_de_count = val_tr_uni_preds.count('D')
     print(f'Unigrams:\ttruthful = {tu_tr_count}\tdeceptive = {tu_de_count}')
-    tb_tr_count = val_tr_bi_predictions.count('truthful')
-    tb_de_count = val_tr_bi_predictions.count('deceptive')
+    tb_tr_count = val_tr_bi_preds.count('T')
+    tb_de_count = val_tr_bi_preds.count('D')
     print(f'Bigrams:\ttruthful = {tb_tr_count}\tdeceptive = {tb_de_count}')
 
-    val_de_uni_perps = {}
-    val_de_bi_perps = {}
-    val_de_uni_predictions = []
-    val_de_bi_predictions = []
-    for i, line in enumerate(val_de_data):
-        val_de_uni_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tu, 1),
-                               'DECEP': get_ngram_perplexity(line, smoothed_du, 1)}
-        val_de_bi_perps[i] = {'TRUTH': get_ngram_perplexity(line, smoothed_tb, 2),
-                               'DECEP': get_ngram_perplexity(line, smoothed_db, 2)}
-        if val_de_uni_perps[i]['TRUTH'] < val_de_uni_perps[i]['DECEP']:
-            val_de_uni_predictions.append('truthful')
-        else:
-            val_de_uni_predictions.append('deceptive')
-        if val_de_bi_perps[i]['TRUTH'] < val_de_bi_perps[i]['DECEP']:
-            val_de_bi_predictions.append('truthful')
-        else:
-            val_de_bi_predictions.append('deceptive')
-
-    print(f'\nVALIDATION DECEPTIVE PREDICTIONS ({len(val_de_uni_predictions)})')
-    du_tr_count = val_de_uni_predictions.count('truthful')
-    du_de_count = val_de_uni_predictions.count('deceptive')
+    print(f'\nVALIDATION DECEPTIVE PREDICTIONS ({len(val_de_uni_preds)})')
+    du_tr_count = val_de_uni_preds.count('T')
+    du_de_count = val_de_uni_preds.count('D')
     print(f'Unigrams:\ttruthful = {du_tr_count}\tdeceptive = {du_de_count}')
-    db_tr_count = val_de_bi_predictions.count('truthful')
-    db_de_count = val_de_bi_predictions.count('deceptive')
+    db_tr_count = val_de_bi_preds.count('T')
+    db_de_count = val_de_bi_preds.count('D')
     print(f'Bigrams:\ttruthful = {db_tr_count}\tdeceptive = {db_de_count}')

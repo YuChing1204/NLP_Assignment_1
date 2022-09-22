@@ -10,7 +10,9 @@ def read_file(path):
     return text
 
 
-def tokens_process(tokens):
+def tokens_process(data):
+    tokens = word_tokenize(data)
+
     new_tokens = []
     for token in tokens:
         if token != ',' and token != '.' and token != '!':
@@ -18,72 +20,57 @@ def tokens_process(tokens):
 
     return new_tokens
 
+def build_uni_vocabulary(tokens_list):
+    vocabulary_set = {}
+    for tokens in tokens_list:
+        for token in tokens:
+            vocabulary_set[token] = 0
 
-def count_unigram(data):
-    unigram_dic = {}
-    tokens = word_tokenize(data)
-    new_tokens = tokens_process(tokens)
-    len_tokens = len(new_tokens)
+    return vocabulary_set
 
-    for token in new_tokens:
-        if token not in unigram_dic:
-            unigram_dic[token] = 1
-        else:
-            unigram_dic[token] += 1
+def build_bi_vocabulary(tokens_list):
+    vocabulary_set = {}
+    for tokens in tokens_list:
+        bigram = bigrams(tokens)
+        for bi in bigram:
+            vocabulary_set[bi] = 0
 
-    return unigram_dic, len_tokens
+    return vocabulary_set
+def count_unigram(tokens, vocabulary_set):
+    vocabulary_set = vocabulary_set.copy()
+    for token in tokens:
+        vocabulary_set[token] += 1
+
+    return vocabulary_set
 
 
-def prob_unigram(data):
-    unigram_dic, len_tokens = count_unigram(data)
+def prob_unigram(tokens, vocabulary_set):
+    unigram_dic = count_unigram(tokens, vocabulary_set)
     prob_unigram_dic = {}
     for unigram in unigram_dic:
-        prob_unigram_dic[unigram] = unigram_dic[unigram] / len_tokens
+        prob_unigram_dic[unigram] = unigram_dic[unigram] / sum(unigram_dic.values())
 
     return prob_unigram_dic
 
 
-def count_bigram(data):
-    bigram_dic = {}
-    tokens = word_tokenize(data)
-    new_tokens = tokens_process(tokens)
-    bigram = bigrams(new_tokens)
+def count_bigram(tokens, vocabulary_set):
+    vocabulary_set = vocabulary_set.copy()
+    bigram = bigrams(tokens)
     for bi in bigram:
-        if bi not in bigram_dic:
-            bigram_dic[bi] = 1
-        else:
-            bigram_dic[bi] += 1
+        vocabulary_set[bi] += 1
 
-    return bigram_dic
+    return vocabulary_set
 
 
-def prob_bigram(data):
-    unigram_dic, len_tokens = count_unigram(data)
-    bigram_dic = count_bigram(data)
+def prob_bigram(tokens, vocabulary_uni_set, vocabulary_bi_set):
+    unigram_dic = count_unigram(tokens, vocabulary_uni_set)
+    bigram_dic = count_bigram(tokens, vocabulary_bi_set)
     prob_bigram_dic = {}
     for bigram in bigram_dic:
-        prob_bigram_dic[bigram] = bigram_dic[bigram] / unigram_dic[bigram[0]]
+        if bigram_dic[bigram] != 0:
+            prob_bigram_dic[bigram] = bigram_dic[bigram] / unigram_dic[bigram[0]]
 
     return prob_bigram_dic
-
-
-# if __name__ == "__main__":
-#     path = "A1_DATASET//train//truthful.txt"
-#     truthful = read_file(path)
-#     prob_unigram = prob_unigram(truthful)
-#     prob_bigram = prob_bigram(truthful)
-#
-#     print("truthful unigram:")
-#     print(max(prob_unigram, key=prob_unigram.get), prob_unigram[max(prob_unigram, key=prob_unigram.get)])
-#     print("truthful bigram:")
-#     print(max(prob_bigram, key=prob_bigram.get), prob_bigram[max(prob_bigram, key=prob_bigram.get)])
-
-    # test = "the students like the assignment"
-    # prob_unigram = prob_unigram(test)
-    # print(max(prob_unigram, key=prob_unigram.get), prob_unigram[max(prob_unigram, key=prob_unigram.get)])
-    # prob_bigram = prob_bigram(test)
-    # print(prob_bigram)
-    # print(max(prob_bigram, key=prob_bigram.get), prob_bigram[max(prob_bigram, key=prob_bigram.get)])
 
 
 

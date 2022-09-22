@@ -1,6 +1,6 @@
 import math
 from nltk.util import ngrams
-
+from nltk.corpus import stopwords
 
 # each line is a list element
 def read_from_file(filepath):
@@ -15,11 +15,10 @@ def read_from_file(filepath):
 def get_unigrams(raw_data):
     unigrams_dict = {}
     for text in raw_data:
-        tokens = text.split()
-        # tokens.insert(0, '<s>')
-        # tokens.append('</s>')
+        updated = '<s> ' + text + ' </s>'
+        tokens = updated.split()
         for token in set(tokens):
-            temp = token # .lower()
+            temp = token.lower()
             if temp in unigrams_dict:
                 unigrams_dict[temp] += tokens.count(temp)
             else:
@@ -32,31 +31,30 @@ def get_unigrams(raw_data):
 def get_ngrams(raw_data, n):
     ngrams_dict = {}
     for text in raw_data:
-        ngrams_list = list(ngrams(text.split(), n)) # , pad_left=True,
-                                                   # left_pad_symbol='<s>',
-                                                   # pad_right=True,
-                                                   # right_pad_symbol='</s>'))
+        ngrams_list = list(ngrams(text.split(), n, pad_left=True,
+                                                   left_pad_symbol='<s>',
+                                                   pad_right=True,
+                                                   right_pad_symbol='</s>'))
         for n_gram in ngrams_list:
-            # temp = (n_gram[0].lower(), n_gram[1].lower())
-            if n_gram in ngrams_dict:
-                ngrams_dict[n_gram] += ngrams_list.count(n_gram)
+            temp = (n_gram[0].lower(), n_gram[1].lower())
+            if temp in ngrams_dict:
+                ngrams_dict[temp] += ngrams_list.count(temp)
             else:
-                ngrams_dict[n_gram] = ngrams_list.count(n_gram)
+                ngrams_dict[temp] = ngrams_list.count(temp)
     return ngrams_dict
 
 
 # UNKNOWNS *******************************************************
 def get_unknown_ngrams(ngram_dict, n, limit):
     key = '<UNK>' if n == 1 else ('<UNK>', '<UNK>')
-    unknowns = {key:value for key, value in ngram_dict.items() if value < limit}
+    unknowns = {key:value for key, value in ngram_dict.items() if value <= limit}
     ngram_dict[key] = sum(unknowns.values())
     return ngram_dict # , unknowns
 
 
 # SMOOTHING FUNCTIONS *****************************************************
-def smoothed_unigram_probabilities(unigrams_dict):
+def smoothed_unigram_probabilities(unigrams_dict, k):
     N = sum(unigrams_dict.values())
-    k = 2
     V = len(unigrams_dict)
     smoothed = {}
     for unigram in unigrams_dict:
@@ -64,8 +62,7 @@ def smoothed_unigram_probabilities(unigrams_dict):
     return smoothed
 
 
-def smoothed_bigram_probabilities(unigrams_dict, bigrams_dict):
-    k = 2
+def smoothed_bigram_probabilities(unigrams_dict, bigrams_dict, k):
     V = len(unigrams_dict)
     smoothed = {}
     for bigram in bigrams_dict:
@@ -76,11 +73,8 @@ def smoothed_bigram_probabilities(unigrams_dict, bigrams_dict):
 # PERPLEXITY ******************************************************
 def get_ngram_perplexity(record, trained_probabilities, n):
     summation = 0
-    words = record.split() # .lower().split()
-    # words.insert(0, '<s>')
-    # words.append('</s>')
-    # stops = set(stopwords.words('english'))
-    # updated_words = [word for word in words if word not in stops]
+    temp = '<s> ' + record + ' </s>'
+    words = temp.lower().split()
     M = len(words)
     ngram_list = list(ngrams(words, n)) if n > 1 else words
     unk_key = '<UNK>' if n == 1 else ('<UNK>', '<UNK>')
@@ -119,16 +113,16 @@ if __name__ == "__main__":
     de_bigrams_dict = get_ngrams(de_train_data, 2)
 
     # UNKNOWN WORD HANDLING
-    updated_tr_unigrams = get_unknown_ngrams(tr_unigrams_dict, 1, 4)
-    updated_tr_bigrams = get_unknown_ngrams(tr_bigrams_dict, 2, 5)
-    updated_de_unigrams = get_unknown_ngrams(de_unigrams_dict, 1, 9)
-    updated_de_bigrams = get_unknown_ngrams(de_bigrams_dict, 2, 5)    
+    updated_tr_unigrams = get_unknown_ngrams(tr_unigrams_dict, 1, 3)
+    updated_tr_bigrams = get_unknown_ngrams(tr_bigrams_dict, 2, 3)
+    updated_de_unigrams = get_unknown_ngrams(de_unigrams_dict, 1, 3)
+    updated_de_bigrams = get_unknown_ngrams(de_bigrams_dict, 2, 3)    
     
     # SMOOTHING
-    smoothed_tu = smoothed_unigram_probabilities(updated_tr_unigrams)
-    smoothed_tb = smoothed_bigram_probabilities(updated_tr_unigrams, updated_tr_bigrams)
-    smoothed_du = smoothed_unigram_probabilities(updated_de_unigrams)
-    smoothed_db = smoothed_bigram_probabilities(updated_de_unigrams, updated_de_bigrams)
+    smoothed_tu = smoothed_unigram_probabilities(updated_tr_unigrams, 1)
+    smoothed_tb = smoothed_bigram_probabilities(updated_tr_unigrams, updated_tr_bigrams, 1)
+    smoothed_du = smoothed_unigram_probabilities(updated_de_unigrams, 1)
+    smoothed_db = smoothed_bigram_probabilities(updated_de_unigrams, updated_de_bigrams, 1)
 
     # VALIDATION ***************************************************************************
     val_tr_data = read_from_file('A1_DATASET\\validation\\truthful.txt')

@@ -56,7 +56,7 @@ def smooth_unigrams(unigrams_dict, k):
 
 
 def smooth_bigrams(unigrams_dict, bigrams_dict, k):
-    V = len(bigrams_dict)
+    V = len(unigrams_dict)
     smoothed = {}
     for bigram in bigrams_dict:
         smoothed[bigram] = (bigrams_dict[bigram] + k) / (unigrams_dict[bigram[0]] + (k * V))

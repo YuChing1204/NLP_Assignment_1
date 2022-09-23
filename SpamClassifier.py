@@ -35,9 +35,9 @@ if __name__ == "__main__":
 
 
     # UNKNOWN WORD HANDLING
-    updated_tr_unigrams = lm.get_unknown_ngrams(tr_unigrams_dict, 1, 15)
+    updated_tr_unigrams = lm.get_unknown_ngrams(tr_unigrams_dict, 1, 1)
     updated_tr_bigrams = lm.get_unknown_ngrams(tr_bigrams_dict, 2, 0)
-    updated_de_unigrams = lm.get_unknown_ngrams(de_unigrams_dict, 1, 30)
+    updated_de_unigrams = lm.get_unknown_ngrams(de_unigrams_dict, 1, 2)
     updated_de_bigrams = lm.get_unknown_ngrams(de_bigrams_dict, 2, 0)
     # print('Truthful unigram UNK count:  ' + str(updated_tr_unigrams['<UNK>']))
     # print('Truthful bigram UNK count:   ' + str(updated_tr_bigrams[('<UNK>', '<UNK>')]))

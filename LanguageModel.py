@@ -1,7 +1,8 @@
+from secrets import token_urlsafe
 import nltk
 from nltk.corpus import stopwords
 from nltk.util import ngrams
-
+from itertools import combinations
 
 # RAW DATA PREPROCESSING ****************************************************
 # removal of punctuation and stopwords
@@ -11,6 +12,7 @@ def preprocess_text(line):
     words = tokenizer.tokenize(line.lower())
     stops = set(stopwords.words('english'))
     tokens = [word for word in words if word not in stops]
+    # tokens = line.split()
     tokens.insert(0, '<s>')
     tokens.append('</s>')
     return tokens
@@ -19,19 +21,33 @@ def preprocess_text(line):
 # NGRAMS **********************************************************
 # unigram dict -> key = unigram string, value = frequency
 # ngram dict -> key = n-gram tuple, value = frequency
-def get_ngrams(raw_data, n):
+def get_unigrams(raw_data):
+    unigrams_dict = {}
+    for line in raw_data:
+        ngrams_list = preprocess_text(line)
+
+        for unigram in ngrams_list:
+            if unigram in unigrams_dict:
+                unigrams_dict[unigram] += ngrams_list.count(unigram)
+            else:
+                unigrams_dict[unigram] = ngrams_list.count(unigram)
+    return unigrams_dict
+
+
+def get_bigrams(raw_data, unigrams_dict):
     ngrams_dict = {}
     for text in raw_data:
-        if n > 1:
-            ngrams_list = list(ngrams(preprocess_text(text), n))
-        else:
-            ngrams_list = preprocess_text(text)
+        ngrams_list = list(ngrams(preprocess_text(text), 2))
 
-        for n_gram in ngrams_list:
-            if n_gram in ngrams_dict:
-                ngrams_dict[n_gram] += ngrams_list.count(n_gram)
+        for bigram in ngrams_list:
+            if bigram in ngrams_dict:
+                ngrams_dict[bigram] += ngrams_list.count(bigram)
             else:
-                ngrams_dict[n_gram] = ngrams_list.count(n_gram)
+                ngrams_dict[bigram] = ngrams_list.count(bigram)
+    combs = combinations(unigrams_dict.keys(), 2)
+    for comb in combs:
+        if comb not in ngrams_dict:
+            ngrams_dict[comb] = 0
     return ngrams_dict
 
 
@@ -44,17 +60,17 @@ def get_unknown_ngrams(ngram_dict, n, limit):
     return ngram_dict
 
 
+# UNIGRAM PROBABILITY *****************************************************
+def unigram_probabilities(unigrams_dict):
+    N = sum(unigrams_dict.values())
+    probabilities = {}
+    for unigram in unigrams_dict:
+        probabilities[unigram] = unigrams_dict[unigram] / N
+    return probabilities
+
+
 # ADD-K SMOOTHING *********************************************************
 # Use k = 1 for Laplace Smoothing
-def smooth_unigrams(unigrams_dict, k):
-    N = sum(unigrams_dict.values())
-    V = len(unigrams_dict)
-    smoothed = {}
-    for unigram in unigrams_dict:
-        smoothed[unigram] = (unigrams_dict[unigram] + k) / (N + (k * V))
-    return smoothed
-
-
 def smooth_bigrams(unigrams_dict, bigrams_dict, k):
     V = len(unigrams_dict)
     smoothed = {}

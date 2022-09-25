@@ -26,53 +26,56 @@ if __name__ == "__main__":
     de_train_data = read_from_file('A1_DATASET\\train\\deceptive.txt')
 
     # truthful preprocessing
-    tr_unigrams_dict = lm.get_ngrams(tr_train_data, 1)
-    tr_bigrams_dict = lm.get_ngrams(tr_train_data, 2)
+    tr_unigrams_dict = lm.get_unigrams(tr_train_data)
+    tr_bigrams_dict = lm.get_bigrams(tr_train_data, tr_unigrams_dict)
 
     # deceptive preprocessing
-    de_unigrams_dict = lm.get_ngrams(de_train_data, 1)
-    de_bigrams_dict = lm.get_ngrams(de_train_data, 2)
+    de_unigrams_dict = lm.get_unigrams(de_train_data)
+    de_bigrams_dict = lm.get_bigrams(de_train_data, de_unigrams_dict)
 
+    similar_unigrams = list(tr_unigrams_dict.keys() - de_unigrams_dict.keys())
+    print(f'similar unigrams ({len(similar_unigrams)} of truthful={len(tr_unigrams_dict)} deceptive={len(de_unigrams_dict)})')
 
     # UNKNOWN WORD HANDLING
     updated_tr_unigrams = lm.get_unknown_ngrams(tr_unigrams_dict, 1, 1)
     updated_tr_bigrams = lm.get_unknown_ngrams(tr_bigrams_dict, 2, 0)
     updated_de_unigrams = lm.get_unknown_ngrams(de_unigrams_dict, 1, 2)
     updated_de_bigrams = lm.get_unknown_ngrams(de_bigrams_dict, 2, 0)
-    # print('Truthful unigram UNK count:  ' + str(updated_tr_unigrams['<UNK>']))
-    # print('Truthful bigram UNK count:   ' + str(updated_tr_bigrams[('<UNK>', '<UNK>')]))
-    # print('Deceptive unigram UNK count: ' + str(updated_de_unigrams['<UNK>']))
-    # print('Deceptive bigram UNK count:  ' + str(updated_de_bigrams[('<UNK>', '<UNK>')])) 
+    print('Truthful unigram UNK count:  ' + str(updated_tr_unigrams['<UNK>']))
+    print('Truthful bigram UNK count:   ' + str(updated_tr_bigrams[('<UNK>', '<UNK>')]))
+    print('Deceptive unigram UNK count: ' + str(updated_de_unigrams['<UNK>']))
+    print('Deceptive bigram UNK count:  ' + str(updated_de_bigrams[('<UNK>', '<UNK>')])) 
     
-
     # SMOOTHING
-    smoothed_tu = lm.smooth_unigrams(updated_tr_unigrams, 1)
+    # smoothed_tu = lm.smooth_unigrams(updated_tr_unigrams, 1)
+    probs_tu = lm.unigram_probabilities(updated_tr_unigrams)
     smoothed_tb = lm.smooth_bigrams(updated_tr_unigrams, updated_tr_bigrams, 1)
-    smoothed_du = lm.smooth_unigrams(updated_de_unigrams, 1)
+    # smoothed_du = lm.smooth_unigrams(updated_de_unigrams, 1)
+    probs_du = lm.unigram_probabilities(updated_de_unigrams)
     smoothed_db = lm.smooth_bigrams(updated_de_unigrams, updated_de_bigrams, 1)
     
     print('\n... TRAINED MODEL REPORT ...')
-    print(f'smooth truthful uni probability sum = {sum(smoothed_tu.values())}')
+    print(f'smooth truthful uni probability sum = {sum(probs_tu.values())}')
     print(f'smooth truthful bi probability sum = {sum(smoothed_tb.values())}')
-    print(f'smooth deceptive uni probability sum = {sum(smoothed_du.values())}')
+    print(f'smooth deceptive uni probability sum = {sum(probs_du.values())}')
     print(f'smooth deceptive bi probability sum = {sum(smoothed_db.values())}')
-    print(f'\nmax truthful unigram prob = {max(smoothed_tu)} {max(smoothed_tu.values())}')
+    print(f'\nmax truthful unigram prob = {max(probs_tu)} {max(probs_tu.values())}')
     print(f'max truthful bigram prob = {max(smoothed_tb)} {max(smoothed_tb.values())}')    
-    print(f'\nmax deceptive unigram prob = {max(smoothed_du)} {max(smoothed_du.values())}')
+    print(f'\nmax deceptive unigram prob = {max(probs_du)} {max(probs_du.values())}')
     print(f'max deceptive bigram prob = {max(smoothed_db)} {max(smoothed_db.values())}')
-    print('\nTruthful unigram UNK prob:  ' + str(smoothed_tu['<UNK>']))
+    print('\nTruthful unigram UNK prob:  ' + str(probs_tu['<UNK>']))
     print('Truthful bigram UNK prob:   ' + str(smoothed_tb[('<UNK>', '<UNK>')]))
-    print('Deceptive unigram UNK prob: ' + str(smoothed_du['<UNK>']))
+    print('Deceptive unigram UNK prob: ' + str(probs_du['<UNK>']))
     print('Deceptive bigram UNK prob:  ' + str(smoothed_db[('<UNK>', '<UNK>')])) 
     
     # VALIDATION ***************************************************************************
     val_tr_data = read_from_file('A1_DATASET\\validation\\truthful.txt')
     val_de_data = read_from_file('A1_DATASET\\validation\\deceptive.txt')
     
-    print('\n... VALIDATION DATA BEGINS ...')
+    print('\n\n... VALIDATION DATA BEGINS ...')
   
     print(f'\n****** VALIDATION TRUTHFUL PREDICTIONS ({len(val_tr_data)}) ******')
-    val_tr_uni_preds = pp.make_predictions(val_tr_data, smoothed_tu, smoothed_du, 1)
+    val_tr_uni_preds = pp.make_predictions(val_tr_data, probs_tu, probs_du, 1)
     val_tr_bi_preds = pp.make_predictions(val_tr_data, smoothed_tb, smoothed_db, 2)
 
     val_tr_labels = [0] * len(val_tr_uni_preds)
@@ -87,7 +90,7 @@ if __name__ == "__main__":
     print(f'VAL TRUTHFUL BIGRAM ACCURACY = {pp.prediction_accuracy(val_tr_bi_preds, val_tr_labels)}')
 
     print(f'\n****** VALIDATION DECEPTIVE PREDICTIONS ({len(val_de_data)}) ******')
-    val_de_uni_preds = pp.make_predictions(val_de_data, smoothed_tu, smoothed_du, 1)
+    val_de_uni_preds = pp.make_predictions(val_de_data, probs_tu, probs_du, 1)
     val_de_bi_preds = pp.make_predictions(val_de_data, smoothed_tb, smoothed_db, 2)
     
     val_de_labels = [1] * len(val_de_uni_preds)
@@ -101,14 +104,13 @@ if __name__ == "__main__":
     print(f'\nVAL DECEPTIVE UNIGRAM ACCURACY = {pp.prediction_accuracy(val_de_uni_preds, val_de_labels)}')
     print(f'VAL DECEPTIVE BIGRAM ACCURACY = {pp.prediction_accuracy(val_de_bi_preds, val_de_labels)}')
 
-
 # TESTING **********************************************************************
     print(f'\n\n... TEST DATA BEGINS ...')
     test_data = read_from_file('A1_DATASET\\test\\test.txt')
     test_labels = labels_from_file('A1_DATASET\\test\\test_labels.txt')
 
     print(f'\n****** TEST PREDICTIONS ({len(test_labels)}) ******')
-    test_uni_preds = pp.make_predictions(test_data, smoothed_tu, smoothed_du, 1)
+    test_uni_preds = pp.make_predictions(test_data, probs_tu, probs_du, 1)
     test_bi_preds = pp.make_predictions(test_data, smoothed_tb, smoothed_db, 2)
 
     tu_tr_count = test_uni_preds.count(0)

@@ -43,3 +43,4 @@ def prediction_accuracy(predictions, actuals):
         if predicted == actual:
             accurate += 1
     return accurate / len(predictions) * 100.0
+    

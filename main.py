@@ -196,8 +196,8 @@ if __name__ == "__main__":
     result = []
     with open(test_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line, prob_unigram_truthful))
-            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line, prob_unigram_deceptive))
+            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line))
+            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line))
 
     with open("A1_DATASET//test//test_labels.txt") as f:
         for line in f.readlines():

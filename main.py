@@ -44,13 +44,13 @@ if __name__ == "__main__":
     # print(max(prob_unigram_deceptive, key=prob_unigram_deceptive.get),prob_unigram_deceptive[max(prob_unigram_deceptive, key=prob_unigram_deceptive.get)])
 
     vocabulary_truthful_bi_set = ngrams_model.build_bi_vocabulary(count_unigram_truthful)
-    count_bigram_truthful = ngrams_model.count_bigram(train_truthful_tokens, vocabulary_truthful_bi_set)
-    prob_bigram_truthful = ngrams_model.prob_bigram(count_bigram_truthful, count_unigram_truthful)
+    # count_bigram_truthful = ngrams_model.count_bigram(train_truthful_tokens, vocabulary_truthful_bi_set)
+    # prob_bigram_truthful = ngrams_model.prob_bigram(count_bigram_truthful, count_unigram_truthful)
     # print(count_bigram_truthful)
     # print(max(prob_bigram_truthful, key=prob_bigram_truthful.get), prob_bigram_truthful[max(prob_bigram_truthful, key=prob_bigram_truthful.get)])
     vocabulary_deceptive_bi_set = ngrams_model.build_bi_vocabulary(count_unigram_deceptive)
-    count_bigram_deceptive = ngrams_model.count_bigram(train_deceptive_tokens, vocabulary_deceptive_bi_set)
-    prob_bigram_deceptive = ngrams_model.prob_bigram(count_bigram_deceptive, count_unigram_deceptive)
+    # count_bigram_deceptive = ngrams_model.count_bigram(train_deceptive_tokens, vocabulary_deceptive_bi_set)
+    # prob_bigram_deceptive = ngrams_model.prob_bigram(count_bigram_deceptive, count_unigram_deceptive)
     # print(max(prob_bigram_deceptive, key=prob_bigram_deceptive.get), prob_bigram_deceptive[max(prob_bigram_deceptive, key=prob_bigram_deceptive.get)])
 
     # # step 3:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # # test_tokens = unknown.unknown_tokens_process(train_truthful_tokens, del_keys_truthful)
     # # vocabulary_bi_set = ngrams_model.build_bi_vocabulary([train_truthful_tokens, train_deceptive_tokens])
     #
-    vocabulary_truthful_bi_set = ngrams_model.build_bi_vocabulary(count_unigram_truthful)
+    # vocabulary_truthful_bi_set = ngrams_model.build_bi_vocabulary(count_unigram_truthful)
     count_bigram_truthful = ngrams_model.count_bigram(train_truthful_tokens, vocabulary_truthful_bi_set)
 
     # # train_truthful_tokens = unknown.unknown_tokens_process(train_truthful_tokens, del_keys_deceptive)
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # # test_tokens = unknown.unknown_tokens_process(train_truthful_tokens, del_keys_deceptive)
     # # vocabulary_bi_set = ngrams_model.build_bi_vocabulary([train_truthful_tokens, train_deceptive_tokens])
     # #
-    vocabulary_deceptive_bi_set = ngrams_model.build_bi_vocabulary(count_unigram_deceptive)
+    # vocabulary_deceptive_bi_set = ngrams_model.build_bi_vocabulary(count_unigram_deceptive)
     count_bigram_deceptive = ngrams_model.count_bigram(train_deceptive_tokens, vocabulary_deceptive_bi_set)
     #
     # # step 4:
@@ -155,10 +155,10 @@ if __name__ == "__main__":
 
     bi_truthful_percentage = (count / len(truthful_perplexity_list)) * 100
     print("validation_truthful_percentage_bi:", bi_truthful_percentage, "%")
-    # # print("avg truthful data in truthful model perplexity:", sum(truthful_perplexity_list)/len(truthful_perplexity_list))
-    # # print("avg deceptive data in truthful model perplexity:", sum(deceptive_perplexity_list) / len(deceptive_perplexity_list))
-    # # print("\n")
-    #
+    # # # print("avg truthful data in truthful model perplexity:", sum(truthful_perplexity_list)/len(truthful_perplexity_list))
+    # # # print("avg deceptive data in truthful model perplexity:", sum(deceptive_perplexity_list) / len(deceptive_perplexity_list))
+    # # # print("\n")
+    # #
     truthful_perplexity_list = []
     deceptive_perplexity_list = []
     with open(validation_deceptive_path) as f:

@@ -20,7 +20,7 @@ def read_file(path):
     return text
 
 
-def tokens_process(data):
+def tokens_process(line):
     # tokens = word_tokenize(data)
     #
     # new_tokens = []
@@ -28,7 +28,17 @@ def tokens_process(data):
     #     if token != ',' and token != '.' and token != '!':
     #         new_tokens.append(token)
 
-    return data
+    text = []
+    tokenizer = nltk.RegexpTokenizer(r"\w+")
+    new_words = tokenizer.tokenize(line)
+
+    text.append("<s>")
+
+    for word in new_words:
+        text.append(word)
+
+    text.append("</s>")
+    return text
 
 def build_uni_vocabulary(tokens_list):
     vocabulary_set = {}

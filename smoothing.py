@@ -19,10 +19,11 @@ def prob_laplace_smooth_bigram(count_unigram, count_bigram):
     prob_laplace_dic = {}
 
     for bigram in count_bigram:
-        if bigram[0] in count_unigram:
-            prob_laplace_dic[bigram] = ((count_bigram[bigram] + 1) / (count_unigram[bigram[0]] + len_unigram_dic * 1))
-        else:
-            prob_laplace_dic[bigram] = ((count_bigram[bigram] + 1) / (count_unigram["<unk>"] + len_unigram_dic * 1))
+        # if bigram[0] in count_unigram:
+        prob_laplace_dic[bigram] = ((count_bigram[bigram] + 1) / (count_unigram[bigram[0]] + len_unigram_dic * 1))
+        # else:
+        #     print("***")
+        #     prob_laplace_dic[bigram] = ((count_bigram[bigram] + 1) / (count_unigram["<unk>"] + len_unigram_dic * 1))
 
     return prob_laplace_dic
 def prob_add_k_smooth_unigram(count_unigram, k):

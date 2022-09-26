@@ -9,6 +9,7 @@ def get_ngram_perplexity(line, trained_probabilities, n):
     M = len(words)
     ngram_list = list(ngrams(words, n)) if n > 1 else words
     unk_key = '<UNK>' if n == 1 else ('<UNK>', '<UNK>')
+
     for ngram in ngram_list:
         if ngram in trained_probabilities:
             summation += math.log2(trained_probabilities[ngram])
@@ -22,6 +23,7 @@ def get_ngram_perplexity(line, trained_probabilities, n):
 def make_predictions(test_data, truthful_model, deceptive_model, n):
     predictions = []
     avg_perp = 0
+    
     for line in test_data:
         truth_score = get_ngram_perplexity(line, truthful_model, n)
         deceptive_score = get_ngram_perplexity(line, deceptive_model, n)
@@ -43,4 +45,3 @@ def prediction_accuracy(predictions, actuals):
         if predicted == actual:
             accurate += 1
     return accurate / len(predictions) * 100.0
-    

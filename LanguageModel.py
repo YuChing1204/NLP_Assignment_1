@@ -1,8 +1,8 @@
-from secrets import token_urlsafe
 import nltk
 from nltk.corpus import stopwords
 from nltk.util import ngrams
-from itertools import combinations, combinations_with_replacement
+from itertools import combinations_with_replacement
+
 
 # RAW DATA PREPROCESSING ****************************************************
 # removal of punctuation and stopwords
@@ -19,7 +19,6 @@ def preprocess_text(line):
 
 # NGRAMS **********************************************************
 # unigram dict -> key = unigram string, value = frequency
-# ngram dict -> key = n-gram tuple, value = frequency
 def get_unigrams(raw_data):
     unigrams_dict = {}
     for line in raw_data:
@@ -33,17 +32,21 @@ def get_unigrams(raw_data):
     return unigrams_dict
 
 
-def get_bigrams(raw_data, zero_count=True): #, unigrams_dict):
+# ngram dict -> key = ngram tuple, value = frequency
+# combinations of each token as 0-count vocabulary
+def get_bigrams(raw_data, zero_count=True):
     ngrams_dict = {}
     combs = set()
     for text in raw_data:
         tokens = preprocess_text(text)
         ngrams_list = list(ngrams(tokens, 2))
+        
         for bigram in ngrams_list:
             if bigram in ngrams_dict:
                 ngrams_dict[bigram] += ngrams_list.count(bigram)
             else:
                 ngrams_dict[bigram] = ngrams_list.count(bigram)
+        
         if zero_count:
             curr_combs = combinations_with_replacement(tokens, 2)
             for comb in curr_combs:
@@ -51,42 +54,6 @@ def get_bigrams(raw_data, zero_count=True): #, unigrams_dict):
                 if comb_tuple not in ngrams_dict:
                     ngrams_dict[comb_tuple] = 0
                 combs.add(tuple(comb))
-    # combs = combinations_with_replacement(unigrams_dict.keys(), 2)
-    # for comb in combs:
-    #     if comb not in ngrams_dict:
-    #         ngrams_dict[comb] = 0
-    return ngrams_dict
-
-def get_bigrams_embedded_unks(raw_data, unks, zero_count=True): #, unigrams_dict):
-    ngrams_dict = {}
-    combs = set()
-    for text in raw_data:
-        tokens = preprocess_text(text)
-        #####################################################################
-        updated_tokens = []
-        for token in tokens:
-            if token in unks:
-                updated_tokens.append('<UNK>')
-            else:
-                updated_tokens.append(token)
-        #####################################################################
-        ngrams_list = list(ngrams(updated_tokens, 2))
-        for bigram in ngrams_list:
-            if bigram in ngrams_dict:
-                ngrams_dict[bigram] += ngrams_list.count(bigram)
-            else:
-                ngrams_dict[bigram] = ngrams_list.count(bigram)
-        if zero_count:
-            curr_combs = combinations_with_replacement(tokens, 2)
-            for comb in curr_combs:
-                comb_tuple = tuple(comb)
-                if comb_tuple not in ngrams_dict:
-                    ngrams_dict[comb_tuple] = 0
-                combs.add(tuple(comb))
-    # combs = combinations_with_replacement(unigrams_dict.keys(), 2)
-    # for comb in combs:
-    #     if comb not in ngrams_dict:
-    #         ngrams_dict[comb] = 0
     return ngrams_dict
 
 
@@ -97,14 +64,6 @@ def get_unknown_ngrams(ngram_dict, n, limit):
     unknowns = {key:value for key, value in ngram_dict.items() if value <= limit}
     ngram_dict[key] = sum(unknowns.values())
     return ngram_dict
-
-#############################################################################
-def get_unknown_ngrams_with_list(ngram_dict, n, limit):
-    key = '<UNK>' if n == 1 else ('<UNK>', '<UNK>')
-    unknowns = {key:value for key, value in ngram_dict.items() if value <= limit}
-    ngram_dict[key] = sum(unknowns.values())
-    return ngram_dict, unknowns
-#############################################################################
 
 
 # UNIGRAM PROBABILITY *****************************************************

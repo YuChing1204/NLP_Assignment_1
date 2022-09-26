@@ -6,7 +6,7 @@ def unknown(count, n):
     count["<unk>"] = 0
     del_keys = set()
     for n_gram in count:
-        if n >= count[n_gram] > 0:
+        if n >= count[n_gram]:
             count["<unk>"] += 1
             del_keys.add(n_gram)
 

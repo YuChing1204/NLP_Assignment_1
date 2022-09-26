@@ -21,13 +21,6 @@ def read_file(path):
 
 
 def tokens_process(line):
-    # tokens = word_tokenize(data)
-    #
-    # new_tokens = []
-    # for token in tokens:
-    #     if token != ',' and token != '.' and token != '!':
-    #         new_tokens.append(token)
-
     text = []
     tokenizer = nltk.RegexpTokenizer(r"\w+")
     new_words = tokenizer.tokenize(line)
@@ -53,10 +46,6 @@ def build_bi_vocabulary(uni_vocabulary):
     combs = itertools.product(uni_vocabulary, repeat = 2)
     for bigram in combs:
         vocabulary_set[bigram] = 0
-    # for token_1 in tokens:
-    #     for token_2 in tokens:
-    #         bigram = (token_1, token_2)
-    #         vocabulary_set[bigram] = 0
 
     return vocabulary_set
 def count_unigram(tokens):

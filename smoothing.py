@@ -45,19 +45,9 @@ def prob_add_k_smooth_bigram(count_unigram, count_bigram, k):
     prob_laplace_dic = {}
 
     for bigram in count_bigram:
-        if bigram[0] in count_unigram:
-            prob_laplace_dic[bigram] = ((count_bigram[bigram] + k) / (count_unigram[bigram[0]] + len_unigram_dic * k))
-        else:
-            prob_laplace_dic[bigram] = ((count_bigram[bigram] + k) / (count_unigram["<unk>"] + len_unigram_dic * k))
+        # if bigram[0] in count_unigram:
+        #     prob_laplace_dic[bigram] = ((count_bigram[bigram] + k) / (count_unigram[bigram[0]] + len_unigram_dic * k))
+        # else:
+        prob_laplace_dic[bigram] = ((count_bigram[bigram] + k) / (count_unigram["<unk>"] + len_unigram_dic * k))
 
     return prob_laplace_dic
-
-    # unigram_dic, len_tokens = ngrams_model.count_unigram(data)
-    # bigram_dic = ngrams_model.count_bigram(data)
-    # len_bigram_dic = len(bigram_dic)
-    # prob_laplace_dic = {}
-    #
-    # for bigram in bigram_dic:
-    #     prob_laplace_dic[bigram] = ((bigram_dic[bigram] + k) / (unigram_dic[bigram[0]] + len_bigram_dic * k))
-    #
-    # return prob_laplace_dic

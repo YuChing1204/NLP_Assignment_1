@@ -27,19 +27,24 @@ if __name__ == "__main__":
 
     # truthful preprocessing
     tr_unigrams_dict = lm.get_unigrams(tr_train_data)
-    tr_bigrams_dict = lm.get_bigrams(tr_train_data, tr_unigrams_dict)
-
+    ############################################################################
+    updated_tr_unigrams, tr_unks = lm.get_unknown_ngrams_with_list(tr_unigrams_dict, 1, 1)
+    ############################################################################
+    tr_bigrams_dict = lm.get_bigrams(tr_train_data, False) # , tr_unigrams_dict)
     # deceptive preprocessing
     de_unigrams_dict = lm.get_unigrams(de_train_data)
-    de_bigrams_dict = lm.get_bigrams(de_train_data, de_unigrams_dict)
+    ############################################################################
+    updated_de_unigrams, de_unks = lm.get_unknown_ngrams_with_list(de_unigrams_dict, 1, 2)
+    ############################################################################
+    de_bigrams_dict = lm.get_bigrams(de_train_data, False) # , de_unigrams_dict)
 
-    similar_unigrams = list(tr_unigrams_dict.keys() - de_unigrams_dict.keys())
-    print(f'similar unigrams ({len(similar_unigrams)} of truthful={len(tr_unigrams_dict)} deceptive={len(de_unigrams_dict)})')
+    # similar_unigrams = list(tr_unigrams_dict.keys() - de_unigrams_dict.keys())
+    # print(f'similar unigrams ({len(similar_unigrams)} of truthful={len(tr_unigrams_dict)} deceptive={len(de_unigrams_dict)})')
 
     # UNKNOWN WORD HANDLING
-    updated_tr_unigrams = lm.get_unknown_ngrams(tr_unigrams_dict, 1, 1)
+    # updated_tr_unigrams = lm.get_unknown_ngrams(tr_unigrams_dict, 1, 1)
     updated_tr_bigrams = lm.get_unknown_ngrams(tr_bigrams_dict, 2, 0)
-    updated_de_unigrams = lm.get_unknown_ngrams(de_unigrams_dict, 1, 2)
+    # updated_de_unigrams = lm.get_unknown_ngrams(de_unigrams_dict, 1, 2)
     updated_de_bigrams = lm.get_unknown_ngrams(de_bigrams_dict, 2, 0)
     print('Truthful unigram UNK count:  ' + str(updated_tr_unigrams['<UNK>']))
     print('Truthful bigram UNK count:   ' + str(updated_tr_bigrams[('<UNK>', '<UNK>')]))
@@ -49,9 +54,11 @@ if __name__ == "__main__":
     # SMOOTHING
     # smoothed_tu = lm.smooth_unigrams(updated_tr_unigrams, 1)
     probs_tu = lm.unigram_probabilities(updated_tr_unigrams)
+    # probs_tb = lm.bigram_probabilties(updated_tr_bigrams, updated_tr_unigrams)
     smoothed_tb = lm.smooth_bigrams(updated_tr_unigrams, updated_tr_bigrams, 1)
     # smoothed_du = lm.smooth_unigrams(updated_de_unigrams, 1)
     probs_du = lm.unigram_probabilities(updated_de_unigrams)
+    # probs_db = lm.bigram_probabilties(updated_de_bigrams, updated_de_unigrams)
     smoothed_db = lm.smooth_bigrams(updated_de_unigrams, updated_de_bigrams, 1)
     
     print('\n... TRAINED MODEL REPORT ...')

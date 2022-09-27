@@ -11,6 +11,7 @@ def read_file(path):
         for line in f.readlines():
             tokenizer = nltk.RegexpTokenizer(r"\w+")
             new_words = tokenizer.tokenize(line)
+            # new_words = word_tokenize(line)
 
             text.append("<s>")
             for word in new_words:
@@ -24,13 +25,13 @@ def tokens_process(line):
     text = []
     tokenizer = nltk.RegexpTokenizer(r"\w+")
     new_words = tokenizer.tokenize(line)
+    # new_words = word_tokenize(line)
 
     text.append("<s>")
-
     for word in new_words:
         text.append(word)
-
     text.append("</s>")
+
     return text
 
 def build_uni_vocabulary(tokens_list):

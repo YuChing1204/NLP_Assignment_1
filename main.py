@@ -6,7 +6,6 @@ import unknown
 if __name__ == "__main__":
     # step1: read data
     # train data
-    print("step1")
     train_truthful_path = "A1_DATASET//train//truthful.txt"
     train_truthful_tokens = ngrams_model.read_file(train_truthful_path)
     train_deceptive_path = "A1_DATASET//train//deceptive.txt"
@@ -20,22 +19,8 @@ if __name__ == "__main__":
     test_path = "A1_DATASET//test//test.txt"
     test_tokens = ngrams_model.read_file(test_path)
 
-    # step2: tokenize data
-    # train_truthful_tokens = ngrams_model.tokens_process(train_truthful)
-    # train_deceptive_tokens = ngrams_model.tokens_process(train_deceptive)
-    # validation_truthful_tokens = ngrams_model.tokens_process(validation_truthful)
-    # validation_deceptive_tokens = ngrams_model.tokens_process(validation_deceptive)
-    # test_tokens = ngrams_model.tokens_process(test)
-
-    # # step 3: add to vocabulary
-    # vocabulary_truthful_uni_set = ngrams_model.build_uni_vocabulary([train_truthful_tokens, train_deceptive_tokens])
-    # vocabulary_deceptive_uni_set = ngrams_model.build_uni_vocabulary([train_truthful_tokens, train_deceptive_tokens])
-    # vocabulary_truthful_bi_set = ngrams_model.build_bi_vocabulary([train_truthful_tokens, train_deceptive_tokens])
-    # vocabulary_deceptive_bi_set = ngrams_model.build_bi_vocabulary([train_truthful_tokens, train_deceptive_tokens])
-
     # step 2:
     # calculate truthful_unigram, truthful_bigram, deceptive_unigram, deceptive_bigram from train
-    print("step2")
     count_unigram_truthful = ngrams_model.count_unigram(train_truthful_tokens)
     prob_unigram_truthful = ngrams_model.prob_unigram(count_unigram_truthful)
     # print(max(prob_unigram_truthful, key=prob_unigram_truthful.get), prob_unigram_truthful[max(prob_unigram_truthful, key=prob_unigram_truthful.get)])
@@ -55,7 +40,6 @@ if __name__ == "__main__":
 
     # # step 3:
     # # handle unknown word
-    print("step3")
     count_unigram_truthful, del_keys_truthful = unknown.unknown(count_unigram_truthful, 1) # n = 1
     count_unigram_deceptive, del_keys_deceptive = unknown.unknown(count_unigram_deceptive, 1)  # n = 1
 
@@ -72,7 +56,6 @@ if __name__ == "__main__":
     count_bigram_deceptive = ngrams_model.count_bigram(train_deceptive_tokens, vocabulary_deceptive_bi_set)
     #
     # # step 4:
-    print("step4")
     # prob_laplace_smooth_bigram_truthful = smoothing.prob_laplace_smooth_bigram(count_unigram_truthful, count_bigram_truthful) # laplace
     prob_laplace_smooth_bigram_truthful = smoothing.prob_add_k_smooth_bigram(count_unigram_truthful, count_bigram_truthful, 1) # add k
     # print(max(prob_laplace_smooth_bigram_truthful, key=prob_laplace_smooth_bigram_truthful.get),
@@ -87,13 +70,12 @@ if __name__ == "__main__":
     # step 5: validation data truthful dataset: unigram-> truthful perplexity, deceptive perplexity,
     # compare perplexity to calculate truthful percentage;
     # bigram perplexity deceptive dataset: unigram perplexity, bigram perplexity
-    print("step5")
     truthful_perplexity_list = []
     deceptive_perplexity_list = []
     with open(validation_truthful_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_truthful, line))
-            deceptive_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_deceptive, line))
+            truthful_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_truthful, line, del_keys_truthful))
+            deceptive_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_deceptive, line, del_keys_deceptive))
 
     count = 0
     for i in range(len(truthful_perplexity_list)):
@@ -110,8 +92,8 @@ if __name__ == "__main__":
     deceptive_perplexity_list = []
     with open(validation_deceptive_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_truthful, line))
-            deceptive_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_deceptive, line))
+            truthful_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_truthful, line, del_keys_truthful))
+            deceptive_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_deceptive, line, del_keys_deceptive))
 
     count = 0
     for i in range(len(truthful_perplexity_list)):
@@ -128,8 +110,8 @@ if __name__ == "__main__":
     deceptive_perplexity_list = []
     with open(validation_truthful_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line))
-            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line))
+            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line, del_keys_truthful))
+            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line, del_keys_deceptive))
 
     count = 0
     for i in range(len(truthful_perplexity_list)):
@@ -138,6 +120,8 @@ if __name__ == "__main__":
 
     bi_truthful_percentage = (count / len(truthful_perplexity_list)) * 100
     print("validation_truthful_percentage_bi:", bi_truthful_percentage, "%")
+    # print("truthful_perplexity_list: " , truthful_perplexity_list)
+    # print("deceptive_perplexity_list: ", deceptive_perplexity_list)
     # print("avg truthful data in truthful model perplexity:", sum(truthful_perplexity_list)/len(truthful_perplexity_list))
     # print("avg deceptive data in truthful model perplexity:", sum(deceptive_perplexity_list) / len(deceptive_perplexity_list))
     # print("\n")
@@ -146,8 +130,8 @@ if __name__ == "__main__":
     deceptive_perplexity_list = []
     with open(validation_deceptive_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line))
-            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line))
+            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line, del_keys_truthful))
+            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line, del_keys_deceptive))
 
     count = 0
     for i in range(len(truthful_perplexity_list)):
@@ -162,15 +146,14 @@ if __name__ == "__main__":
     #
     #
     # step 6: test data dataset
-
     truthful_perplexity_list = []
     deceptive_perplexity_list = []
     label = []
     result = []
     with open(test_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_truthful, line))
-            deceptive_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_deceptive, line))
+            truthful_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_truthful, line, del_keys_truthful))
+            deceptive_perplexity_list.append(perplexity.cal_perplexity(prob_unigram_deceptive, line, del_keys_deceptive))
 
     with open("A1_DATASET//test//test_labels.txt") as f:
         for line in f.readlines():
@@ -189,6 +172,8 @@ if __name__ == "__main__":
 
     accuracy = (count / len(label)) * 100
     print("uni_test_accuracy:", accuracy, "%")
+    print("avg truthful uni perplexity:", sum(truthful_perplexity_list)/len(truthful_perplexity_list))
+    print("avg deceptive uni perplexity:", sum(deceptive_perplexity_list)/len(deceptive_perplexity_list))
 
     truthful_perplexity_list = []
     deceptive_perplexity_list = []
@@ -196,8 +181,8 @@ if __name__ == "__main__":
     result = []
     with open(test_path) as f:
         for line in f.readlines():
-            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line))
-            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line))
+            truthful_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_truthful, line, del_keys_truthful))
+            deceptive_perplexity_list.append(perplexity.cal_bi_perplexity(prob_laplace_smooth_bigram_deceptive, line, del_keys_deceptive))
 
     with open("A1_DATASET//test//test_labels.txt") as f:
         for line in f.readlines():
@@ -216,3 +201,5 @@ if __name__ == "__main__":
 
     accuracy = (count / len(label)) * 100
     print("bi_test_accuracy:", accuracy, "%")
+    print("avg truthful bi perplexity:", sum(truthful_perplexity_list)/len(truthful_perplexity_list))
+    print("avg deceptive bi perplexity:", sum(deceptive_perplexity_list)/len(deceptive_perplexity_list))
